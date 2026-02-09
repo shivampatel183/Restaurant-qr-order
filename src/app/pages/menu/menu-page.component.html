@@ -1,0 +1,63 @@
+<section class="page">
+  <div class="card hero">
+    <div>
+      <h2>Scan → Select → Order</h2>
+      <p>Table: <strong>{{ activeTable()?.table_no ?? 'Unknown' }}</strong></p>
+      <p class="muted">Freshly prepared dishes delivered straight from this QR workflow.</p>
+    </div>
+    <button class="primary" [disabled]="placingOrder() || !activeTable()" (click)="placeOrder()">
+      {{ placingOrder() ? 'Placing...' : 'Place Order' }}
+    </button>
+  </div>
+
+  <div class="grid grid-2" style="margin-top: 1rem; align-items: start;">
+    <div class="grid">
+      @for (category of categories(); track category.id) {
+        <article class="card">
+          <h3>{{ category.name }}</h3>
+          @for (item of groupedItems().get(category.id) ?? []; track item.id) {
+            <div class="menu-row">
+              <div>
+                <strong>{{ item.name }}</strong>
+                <p class="muted" style="margin: 0">{{ item.price | currency: 'INR' }}</p>
+              </div>
+              <div class="qty-group">
+                <button class="secondary" (click)="updateQty(item.id, (quantityMap()[item.id] ?? 0) - 1)">-</button>
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="quantityMap()[item.id] ?? 0"
+                  (ngModelChange)="updateQty(item.id, $event)"
+                />
+                <button class="secondary" (click)="updateQty(item.id, (quantityMap()[item.id] ?? 0) + 1)">+</button>
+              </div>
+            </div>
+          }
+        </article>
+      }
+    </div>
+
+    <aside class="card sticky">
+      <h3>Your Cart</h3>
+      @if (cartItems().length === 0) {
+        <p class="muted">No items selected yet.</p>
+      } @else {
+        @for (row of cartItems(); track row.item.id) {
+          <div class="menu-row">
+            <span>{{ row.item.name }} × {{ row.qty }}</span>
+            <strong>{{ row.item.price * row.qty | currency: 'INR' }}</strong>
+          </div>
+        }
+        <hr />
+        <div class="menu-row">
+          <strong>Total</strong>
+          <strong>{{ cartTotal() | currency: 'INR' }}</strong>
+        </div>
+      }
+
+      @if (orderMessage()) {
+        <p class="muted" style="margin-top: 0.75rem">{{ orderMessage() }}</p>
+      }
+    </aside>
+  </div>
+</section>
