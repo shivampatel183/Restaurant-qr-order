@@ -1,0 +1,29 @@
+<section class="page">
+  <div class="card">
+    <h2>Table #{{ tableId() }}</h2>
+    <p>Select your items and place order directly to kitchen.</p>
+  </div>
+
+  <div class="grid" style="margin-top: 1rem">
+    @for (category of categories(); track category.id) {
+      <div class="card">
+        <h3>{{ category.name }}</h3>
+        @for (item of groupedItems().get(category.id) ?? []; track item.id) {
+          <div style="display: grid; grid-template-columns: 1fr 120px 80px; gap: 0.75rem; align-items: center; margin: 0.65rem 0;">
+            <span>
+              <strong>{{ item.name }}</strong><br />
+              {{ item.price | currency: 'INR' }}
+            </span>
+            <input type="number" min="0" [ngModel]="quantityMap()[item.id] || 0" (ngModelChange)="updateQty(item.id, $event)" />
+            <button class="secondary" (click)="updateQty(item.id, '0')">Clear</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="card" style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
+    <button class="primary" [disabled]="placingOrder()" (click)="placeOrder()">{{ placingOrder() ? 'Placing...' : 'Place Order' }}</button>
+    <span>{{ orderMessage() }}</span>
+  </div>
+</section>
