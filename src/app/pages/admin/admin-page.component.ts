@@ -25,6 +25,7 @@ export class AdminPageComponent implements OnInit {
   saving = signal(false);
   taxDraft = signal(0);
   tableCountDraft = signal(0);
+  restaurantNameDraft = signal('');
   qrMap = signal<Record<number, string>>({});
   qrLoading = signal<Record<number, boolean>>({});
   adminTableNumber = signal<number | null>(null);
@@ -63,6 +64,7 @@ export class AdminPageComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     await this.settingsService.loadTaxPercent();
     this.taxDraft.set(this.settingsService.taxPercent());
+    this.restaurantNameDraft.set(this.settingsService.restaurantName());
     await this.refresh();
   }
 
@@ -113,6 +115,15 @@ export class AdminPageComponent implements OnInit {
   async saveTaxPercent(): Promise<void> {
     await this.settingsService.updateTaxPercent(this.taxDraft());
     this.taxDraft.set(this.settingsService.taxPercent());
+  }
+
+  updateRestaurantName(name: string): void {
+    this.restaurantNameDraft.set(name);
+  }
+
+  async saveRestaurantName(): Promise<void> {
+    await this.settingsService.updateRestaurantName(this.restaurantNameDraft());
+    this.restaurantNameDraft.set(this.settingsService.restaurantName());
   }
 
   updateCategoryName(name: string): void {

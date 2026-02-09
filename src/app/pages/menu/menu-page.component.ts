@@ -7,6 +7,7 @@ import { MenuService } from '../../core/services/menu.service';
 import { OrderService } from '../../core/services/order.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { OrderStatusBadgeComponent } from '../../shared/components/order-status-badge.component';
+import jsPDF from 'jspdf';
 import { MenuCategory, MenuItem, OrderItem, OrderWithDetails } from '../../shared/models/domain.models';
 
 @Component({
@@ -207,35 +208,75 @@ export class MenuPageComponent implements OnInit {
     }
 
     const tableNo = this.tableNumber() ?? 'N/A';
-    const lines: string[] = [];
-    lines.push(`Restaurant QR Order`);
-    lines.push(`Table #${tableNo}`);
-    lines.push(`Date: ${new Date().toLocaleString()}`);
-    lines.push('');
-    lines.push('Items:');
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+    let y = 60;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text(this.settingsService.restaurantName(), margin, y);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    y += 20;
+    doc.text(`Table #${tableNo}`, margin, y);
+    y += 16;
+    doc.text(`Date: ${new Date().toLocaleString()}`, margin, y);
+
+    y += 22;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Items', margin, y);
+    y += 12;
+    doc.setLineWidth(1);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 18;
 
     this.openOrders().forEach((order) => {
-      lines.push(`Order ${order.id.slice(0, 8)} (${order.status})`);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Order ${order.id.slice(0, 8)} (${order.status})`, margin, y);
+      y += 16;
+      doc.setFont('helvetica', 'normal');
+
       (order.order_items ?? []).forEach((item) => {
         const name = item.menu_item?.name ?? 'Item';
         const price = Number(item.menu_item?.price ?? 0);
         const amount = price * item.qty;
-        lines.push(`- ${name} x${item.qty} = ${amount.toFixed(2)}`);
+        const line = `${name} x${item.qty}`;
+        doc.text(line, margin, y);
+        doc.text(amount.toFixed(2), pageWidth - margin, y, { align: 'right' });
+        y += 14;
       });
-      lines.push('');
+
+      y += 6;
+      if (y > doc.internal.pageSize.getHeight() - 120) {
+        doc.addPage();
+        y = 60;
+      }
     });
 
-    lines.push(`Subtotal: ${this.openOrderSubtotal().toFixed(2)}`);
-    lines.push(`Tax: ${this.openOrderTax().toFixed(2)}`);
-    lines.push(`Total: ${this.openOrderTotal().toFixed(2)}`);
+    y += 10;
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 18;
 
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `table-${tableNo}-bill.txt`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Subtotal', margin, y);
+    doc.text(this.openOrderSubtotal().toFixed(2), pageWidth - margin, y, { align: 'right' });
+    y += 14;
+    doc.text(`Tax (${this.settingsService.taxPercent()}%)`, margin, y);
+    doc.text(this.openOrderTax().toFixed(2), pageWidth - margin, y, { align: 'right' });
+    y += 16;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total', margin, y);
+    doc.text(this.openOrderTotal().toFixed(2), pageWidth - margin, y, { align: 'right' });
+
+    y += 26;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Thank you for dining with us!', margin, y);
+
+    doc.save(`table-${tableNo}-bill.pdf`);
 
     this.showPopup('Bill downloaded. Thank you for dining with us!');
   }

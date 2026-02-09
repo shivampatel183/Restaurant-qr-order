@@ -38,6 +38,7 @@ create table if not exists order_items (
 create table if not exists app_settings (
   id int primary key default 1,
   tax_percent numeric(5,2) not null default 0,
+  restaurant_name text not null default 'Restaurant QR Order',
   updated_at timestamptz not null default now()
 );
 

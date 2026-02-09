@@ -33,9 +33,12 @@
       <h3>Daily Summary</h3>
       <p>Total orders: {{ orders().length }}</p>
       <p>Paid orders: {{ paidCount }}</p>
+      <label>Restaurant Name</label>
+      <input [ngModel]="restaurantNameDraft()" (ngModelChange)="updateRestaurantName($event)" />
       <label>Tax % (applies to all bills)</label>
       <input type="number" [ngModel]="taxDraft()" (ngModelChange)="updateTaxDraft($event)" />
       <div class="admin-stats-actions" style="margin-top: 0.75rem;">
+        <button class="primary" (click)="saveRestaurantName()">Save Name</button>
         <button class="primary" (click)="saveTaxPercent()">Save Tax</button>
         <button class="secondary" (click)="refresh()">Refresh</button>
         <a routerLink="/admin/order" class="secondary-link">Create Order</a>
@@ -131,12 +134,12 @@
   <div class="card" style="margin-top: 1rem;">
     <h3>Recent Orders</h3>
     @for (order of orders().slice(0, 20); track order.id) {
-      <div class="admin-order-row" style="border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 0.75rem;">
+      <div style="border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <span>{{ order.id.slice(0, 8) }} · Table #{{ order.table?.table_no ?? 'N/A' }}</span>
           <app-order-status-badge [status]="order.status"></app-order-status-badge>
         </div>
-        <div class="admin-order-lines" style="width: 100%; margin-top: 0.5rem;">
+        <div style="margin-top: 0.5rem;">
           @for (item of order.order_items ?? []; track item.id) {
             <div style="display: flex; justify-content: space-between;">
               <span>{{ item.menu_item?.name ?? 'Item' }} x{{ item.qty }}</span>
