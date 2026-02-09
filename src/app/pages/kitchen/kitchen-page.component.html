@@ -1,23 +1,18 @@
 <section class="page">
-  <div class="card hero">
-    <div>
-      <h2>Kitchen Live Orders</h2>
-      <p class="muted">Realtime board updates from Supabase Realtime.</p>
-    </div>
-  </div>
+  <h2>Kitchen Live Orders</h2>
 
-  <div class="grid grid-2" style="margin-top: 1rem;">
+  <div class="grid">
     @for (order of orders(); track order.id) {
       <article class="card">
-        <div class="menu-row">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h3 style="margin: 0">#{{ order.id.slice(0, 8) }}</h3>
-            <p class="muted" style="margin: 0">{{ order.created_at | date: 'medium' }}</p>
+            <h3>Order {{ order.id.slice(0, 8) }}</h3>
+            <small>{{ order.created_at | date: 'short' }}</small>
           </div>
           <app-order-status-badge [status]="order.status"></app-order-status-badge>
         </div>
 
-        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
           <button class="secondary" (click)="setStatus(order.id, 'preparing')">Preparing</button>
           <button class="primary" (click)="setStatus(order.id, 'served')">Served</button>
           <button class="danger" (click)="setStatus(order.id, 'paid')">Paid</button>

@@ -1,63 +1,29 @@
 <section class="page">
-  <div class="card hero">
-    <div>
-      <h2>Scan → Select → Order</h2>
-      <p>Table: <strong>{{ activeTable()?.table_no ?? 'Unknown' }}</strong></p>
-      <p class="muted">Freshly prepared dishes delivered straight from this QR workflow.</p>
-    </div>
-    <button class="primary" [disabled]="placingOrder() || !activeTable()" (click)="placeOrder()">
-      {{ placingOrder() ? 'Placing...' : 'Place Order' }}
-    </button>
+  <div class="card">
+    <h2>Table #{{ tableId() }}</h2>
+    <p>Select your items and place order directly to kitchen.</p>
   </div>
 
-  <div class="grid grid-2" style="margin-top: 1rem; align-items: start;">
-    <div class="grid">
-      @for (category of categories(); track category.id) {
-        <article class="card">
-          <h3>{{ category.name }}</h3>
-          @for (item of groupedItems().get(category.id) ?? []; track item.id) {
-            <div class="menu-row">
-              <div>
-                <strong>{{ item.name }}</strong>
-                <p class="muted" style="margin: 0">{{ item.price | currency: 'INR' }}</p>
-              </div>
-              <div class="qty-group">
-                <button class="secondary" (click)="updateQty(item.id, (quantityMap()[item.id] ?? 0) - 1)">-</button>
-                <input
-                  type="number"
-                  min="0"
-                  [ngModel]="quantityMap()[item.id] ?? 0"
-                  (ngModelChange)="updateQty(item.id, $event)"
-                />
-                <button class="secondary" (click)="updateQty(item.id, (quantityMap()[item.id] ?? 0) + 1)">+</button>
-              </div>
-            </div>
-          }
-        </article>
-      }
-    </div>
-
-    <aside class="card sticky">
-      <h3>Your Cart</h3>
-      @if (cartItems().length === 0) {
-        <p class="muted">No items selected yet.</p>
-      } @else {
-        @for (row of cartItems(); track row.item.id) {
-          <div class="menu-row">
-            <span>{{ row.item.name }} × {{ row.qty }}</span>
-            <strong>{{ row.item.price * row.qty | currency: 'INR' }}</strong>
+  <div class="grid" style="margin-top: 1rem">
+    @for (category of categories(); track category.id) {
+      <div class="card">
+        <h3>{{ category.name }}</h3>
+        @for (item of groupedItems().get(category.id) ?? []; track item.id) {
+          <div style="display: grid; grid-template-columns: 1fr 120px 80px; gap: 0.75rem; align-items: center; margin: 0.65rem 0;">
+            <span>
+              <strong>{{ item.name }}</strong><br />
+              {{ item.price | currency: 'INR' }}
+            </span>
+            <input type="number" min="0" [ngModel]="quantityMap()[item.id] || 0" (ngModelChange)="updateQty(item.id, $event)" />
+            <button class="secondary" (click)="updateQty(item.id, '0')">Clear</button>
           </div>
         }
-        <hr />
-        <div class="menu-row">
-          <strong>Total</strong>
-          <strong>{{ cartTotal() | currency: 'INR' }}</strong>
-        </div>
-      }
+      </div>
+    }
+  </div>
 
-      @if (orderMessage()) {
-        <p class="muted" style="margin-top: 0.75rem">{{ orderMessage() }}</p>
-      }
-    </aside>
+  <div class="card" style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
+    <button class="primary" [disabled]="placingOrder()" (click)="placeOrder()">{{ placingOrder() ? 'Placing...' : 'Place Order' }}</button>
+    <span>{{ orderMessage() }}</span>
   </div>
 </section>

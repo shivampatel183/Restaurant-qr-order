@@ -17,25 +17,20 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   constructor(private readonly orderService: OrderService) {}
 
   async ngOnInit(): Promise<void> {
-    this.orders.set(await this.orderService.getOrders());
-    this.orderService.subscribeToOrders((incoming) => {
-      this.orders.update((current) => {
-        const idx = current.findIndex((order) => order.id === incoming.id);
-        if (idx >= 0) {
-          const next = [...current];
-          next[idx] = incoming;
-          return next;
-        }
-        return [incoming, ...current];
-      });
+    const current = await this.orderService.getOrders();
+    this.orders.set(current);
+
+    this.orderService.subscribeToOrderInserts((newOrder) => {
+      this.orders.update((existing) => [newOrder, ...existing]);
     });
   }
 
   ngOnDestroy(): void {
-    this.orderService.unsubscribeFromOrders();
+    this.orderService.unsubscribeFromOrderInserts();
   }
 
   async setStatus(orderId: string, status: OrderStatus): Promise<void> {
     await this.orderService.updateStatus(orderId, status);
+    this.orders.update((current) => current.map((order) => (order.id === orderId ? { ...order, status } : order)));
   }
 }

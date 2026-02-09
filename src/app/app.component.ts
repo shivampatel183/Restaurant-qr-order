@@ -8,10 +8,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <header class="shell-header">
-      <div>
-        <h1>Restaurant QR Order</h1>
-        <small>Angular + Supabase • No custom backend</small>
-      </div>
+      <h1>Restaurant QR Order</h1>
       <nav>
         <a routerLink="/menu" routerLinkActive="active">Menu</a>
         <a routerLink="/kitchen" routerLinkActive="active">Kitchen</a>
@@ -43,6 +40,10 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
       small {
         color: #94a3b8;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
       }
 
       nav {
@@ -54,6 +55,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
         color: #cbd5e1;
         text-decoration: none;
         font-weight: 700;
+        font-weight: 600;
       }
 
       a.active {

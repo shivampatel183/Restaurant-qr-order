@@ -1,46 +1,22 @@
 <section class="page">
-  <div class="card hero">
-    <div>
-      <h2>Admin Panel</h2>
-      <p class="muted">Manage menu, monitor orders, and maintain operations.</p>
-    </div>
-    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-      <small class="muted">{{ sessionEmail() || 'Not signed in' }}</small>
-      @if (sessionEmail()) {
-        <button class="secondary" (click)="signOut()">Logout</button>
-      }
-    </div>
-  </div>
+  <h2>Admin Panel</h2>
 
-  @if (!sessionEmail()) {
-    <div class="card" style="margin-top: 1rem;">
-      <h3>Admin Login</h3>
-      <div class="grid grid-2">
-        <input placeholder="Email" [ngModel]="email()" (ngModelChange)="email.set($event)" />
-        <input placeholder="Password" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" />
-      </div>
-      <button class="primary" style="margin-top: 0.75rem" (click)="signIn()">Sign in</button>
-    </div>
-  }
-
-  <div class="grid grid-2" style="margin-top: 1rem; align-items: start;">
+  <div class="grid grid-2">
     <div class="card">
       <h3>Create / Update Menu Item</h3>
       <label>Name</label>
       <input [ngModel]="draft().name" (ngModelChange)="draft.update(v => ({ ...v, name: $event }))" />
       <label>Category ID</label>
       <input [ngModel]="draft().category_id" (ngModelChange)="draft.update(v => ({ ...v, category_id: $event }))" />
-      <label>Image URL</label>
-      <input [ngModel]="draft().image_url" (ngModelChange)="draft.update(v => ({ ...v, image_url: $event }))" />
       <label>Price</label>
-      <input type="number" [ngModel]="draft().price" (ngModelChange)="setDraftPrice($event)" />
+      <input type="number" [ngModel]="draft().price" (ngModelChange)="draft.update(v => ({ ...v, price: Number($event) }))" />
       <button class="primary" style="margin-top: 0.75rem" [disabled]="saving()" (click)="saveMenuItem()">{{ saving() ? 'Saving...' : 'Save Item' }}</button>
     </div>
 
     <div class="card">
       <h3>Daily Summary</h3>
-      <p>Total orders: <strong>{{ orders().length }}</strong></p>
-      <p>Paid orders: <strong>{{ paidCount }}</strong></p>
+      <p>Total orders: {{ orders().length }}</p>
+      <p>Paid orders: {{ paidCount }}</p>
       <button class="secondary" (click)="refresh()">Refresh</button>
     </div>
   </div>
@@ -48,8 +24,8 @@
   <div class="card" style="margin-top: 1rem;">
     <h3>Menu Items</h3>
     @for (item of menuItems(); track item.id) {
-      <div class="menu-row with-divider">
-        <span>{{ item.name }} · ₹{{ item.price }} · {{ item.is_available ? 'Available' : 'Hidden' }}</span>
+      <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+        <span>{{ item.name }} ({{ item.price }})</span>
         <button class="secondary" (click)="toggleAvailability(item)">
           {{ item.is_available ? 'Disable' : 'Enable' }}
         </button>
@@ -60,8 +36,8 @@
   <div class="card" style="margin-top: 1rem;">
     <h3>Recent Orders</h3>
     @for (order of orders().slice(0, 20); track order.id) {
-      <div class="menu-row with-divider">
-        <span>{{ order.id.slice(0, 8) }} · {{ order.created_at | date: 'short' }}</span>
+      <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+        <span>{{ order.id.slice(0, 8) }} · Table {{ order.table_id.slice(0, 6) }}</span>
         <app-order-status-badge [status]="order.status"></app-order-status-badge>
       </div>
     }

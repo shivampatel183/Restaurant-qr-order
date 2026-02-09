@@ -4,14 +4,12 @@ export interface DiningTable {
   id: string;
   table_no: number;
   is_active: boolean;
-  created_at: string;
 }
 
 export interface MenuCategory {
   id: string;
   name: string;
   sort_order: number;
-  created_at: string;
 }
 
 export interface MenuItem {
@@ -20,8 +18,6 @@ export interface MenuItem {
   name: string;
   price: number;
   is_available: boolean;
-  image_url?: string | null;
-  created_at: string;
 }
 
 export interface Order {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-
-import { SupabaseService } from './supabase.service';
 import { DiningTable, MenuCategory, MenuItem } from '../../shared/models/domain.models';
+import { SupabaseService } from './supabase.service';
+import { MenuCategory, MenuItem } from '../../shared/models/domain.models';
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {

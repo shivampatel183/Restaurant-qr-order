@@ -23,9 +23,8 @@ export class OrderService {
       throw orderError;
     }
 
-    const { error: itemError } = await client
-      .from('order_items')
-      .insert(items.map((item) => ({ ...item, order_id: order.id })));
+    const enrichedItems = items.map((item) => ({ ...item, order_id: order.id }));
+    const { error: itemError } = await client.from('order_items').insert(enrichedItems);
 
     if (itemError) {
       throw itemError;
@@ -56,20 +55,17 @@ export class OrderService {
     }
   }
 
-  subscribeToOrders(onChange: (order: Order) => void): void {
+  subscribeToOrderInserts(onInsert: (order: Order) => void): void {
     this.ordersChannel = this.supabaseService
       .getClient()
       .channel('orders-live')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
-        onChange(payload.new as Order);
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
-        onChange(payload.new as Order);
+        onInsert(payload.new as Order);
       })
       .subscribe();
   }
 
-  unsubscribeFromOrders(): void {
+  unsubscribeFromOrderInserts(): void {
     if (this.ordersChannel) {
       this.supabaseService.getClient().removeChannel(this.ordersChannel);
       this.ordersChannel = undefined;
