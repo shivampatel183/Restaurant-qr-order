@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 import { SupabaseService } from './supabase.service';
-import { Order, OrderItem, OrderStatus } from '../../shared/models/domain.models';
+import { Order, OrderItem, OrderStatus, OrderWithDetails } from '../../shared/models/domain.models';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -33,18 +33,83 @@ export class OrderService {
     return order.id;
   }
 
-  async getOrders(): Promise<Order[]> {
+  async getOpenOrderForTable(tableId: string): Promise<Order | null> {
     const { data, error } = await this.supabaseService
       .getClient()
       .from('orders')
       .select('*')
+      .eq('table_id', tableId)
+      .in('status', ['pending'])
+      .order('created_at', { ascending: false })
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return (data as Order) ?? null;
+  }
+
+  async getOpenOrderWithDetails(tableId: string): Promise<OrderWithDetails | null> {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .select(
+        '*, table:tables (id, table_no), order_items:order_items (id, qty, note, menu_item:menu_items (id, name, price))'
+      )
+      .eq('table_id', tableId)
+      .in('status', ['pending'])
+      .order('created_at', { ascending: false })
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return (data as OrderWithDetails) ?? null;
+  }
+
+  async getOpenOrdersWithDetails(tableId: string): Promise<OrderWithDetails[]> {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .select(
+        '*, table:tables (id, table_no), order_items:order_items (id, qty, note, menu_item:menu_items (id, name, price))'
+      )
+      .eq('table_id', tableId)
+      .in('status', ['pending', 'served'])
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data as OrderWithDetails[]) ?? [];
+  }
+
+  async addItemsToOrder(orderId: string, items: OrderItem[]): Promise<void> {
+    const enrichedItems = items.map((item) => ({ ...item, order_id: orderId }));
+    const { error } = await this.supabaseService.getClient().from('order_items').insert(enrichedItems);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async getOrders(): Promise<OrderWithDetails[]> {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('orders')
+      .select(
+        '*, table:tables (id, table_no), order_items:order_items (id, qty, note, menu_item:menu_items (id, name, price))'
+      )
       .order('created_at', { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    return data as Order[];
+    return data as OrderWithDetails[];
   }
 
   async updateStatus(orderId: string, status: OrderStatus): Promise<void> {

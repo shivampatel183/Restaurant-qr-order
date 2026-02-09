@@ -1,0 +1,46 @@
+<section class="page">
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>Create Order (Admin)</h2>
+      <a routerLink="/admin" class="secondary-link">Back to Admin</a>
+    </div>
+    <p style="color: #64748b;">Create or update an open order for any table.</p>
+  </div>
+
+  <div class="grid grid-2" style="margin-top: 1rem;">
+    <div class="card">
+      <label>Table Number</label>
+      <input type="number" [ngModel]="adminTableNumber()" (ngModelChange)="updateAdminTable($event)" />
+
+      <div style="margin-top: 0.75rem;">
+        @for (item of menuItems(); track item.id) {
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #e2e8f0; padding: 0.5rem 0;">
+            <div>
+              <strong>{{ item.name }}</strong>
+              <div style="color: #64748b; font-size: 0.85rem;">{{ item.price | currency: 'INR' }}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <button class="secondary" (click)="adminDecrement(item.id)">-</button>
+              <span>{{ adminQuantityMap()[item.id] || 0 }}</span>
+              <button class="secondary" (click)="adminIncrement(item.id)">+</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Order Summary</h3>
+      <div style="margin-top: 0.75rem; font-weight: 600;">
+        <div>Subtotal: {{ adminCartSubtotal() | currency: 'INR' }}</div>
+        <div>Tax: {{ adminCartTax() | currency: 'INR' }}</div>
+        <div>Total: {{ adminCartTotal() | currency: 'INR' }}</div>
+      </div>
+
+      <button class="primary" style="margin-top: 0.75rem" [disabled]="adminOrdering()" (click)="placeAdminOrder()">
+        {{ adminOrdering() ? 'Saving...' : 'Place Order' }}
+      </button>
+      <p style="margin-top: 0.5rem; color: #64748b;">{{ adminMessage() }}</p>
+    </div>
+  </div>
+</section>

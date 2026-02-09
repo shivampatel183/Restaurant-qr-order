@@ -18,9 +18,9 @@ import { OrderStatus } from '../models/domain.models';
         font-weight: 700;
       }
       .pending { background: #fef3c7; color: #92400e; }
-      .preparing { background: #dbeafe; color: #1d4ed8; }
       .served { background: #dcfce7; color: #166534; }
       .paid { background: #e9d5ff; color: #6b21a8; }
+      .canceled { background: #fee2e2; color: #b91c1c; }
     `
   ]
 })

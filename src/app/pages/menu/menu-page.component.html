@@ -1,29 +1,144 @@
-<section class="page">
-  <div class="card">
-    <h2>Table #{{ tableId() }}</h2>
-    <p>Select your items and place order directly to kitchen.</p>
-  </div>
+<section class="page menu-page">
+  <header class="menu-hero">
+    <div>
+      <p class="menu-eyebrow">Welcome</p>
+      <h2>Table #{{ tableNumber() ?? 'N/A' }}</h2>
+      <p class="menu-subtitle">Tap + to add items. Review your cart before placing the order.</p>
+    </div>
+    <div class="menu-status">
+      <span class="menu-status-label">Items</span>
+      <span class="menu-status-value">{{ cartTotalQty() }}</span>
+    </div>
+  </header>
 
-  <div class="grid" style="margin-top: 1rem">
-    @for (category of categories(); track category.id) {
-      <div class="card">
-        <h3>{{ category.name }}</h3>
-        @for (item of groupedItems().get(category.id) ?? []; track item.id) {
-          <div style="display: grid; grid-template-columns: 1fr 120px 80px; gap: 0.75rem; align-items: center; margin: 0.65rem 0;">
-            <span>
-              <strong>{{ item.name }}</strong><br />
-              {{ item.price | currency: 'INR' }}
-            </span>
-            <input type="number" min="0" [ngModel]="quantityMap()[item.id] || 0" (ngModelChange)="updateQty(item.id, $event)" />
-            <button class="secondary" (click)="updateQty(item.id, '0')">Clear</button>
+  @if (popupVisible()) {
+    <div class="popup-overlay" (click)="closePopup()">
+      <div class="popup-card" (click)="$event.stopPropagation()">
+        <p>{{ popupMessage() }}</p>
+        <button class="primary" (click)="closePopup()">Close</button>
+      </div>
+    </div>
+  }
+
+  @if (selectingTable()) {
+    <div class="card">
+      <h3>Select Table</h3>
+      <p style="color: #64748b;">Enter your table number to continue.</p>
+      <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.75rem;">
+        <input type="number" [ngModel]="tableInput()" (ngModelChange)="tableInput.set($event)" />
+        <button class="primary" (click)="setTableFromInput()">Continue</button>
+      </div>
+      <p style="margin-top: 0.5rem; color: #64748b;">{{ orderMessage() }}</p>
+    </div>
+  }
+
+  @if (openOrders().length) {
+    <div class="card" style="margin-top: 1rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>Open Orders</h3>
+        <span style="color: #64748b;">{{ openOrders().length }} active</span>
+      </div>
+      <div style="margin-top: 0.5rem; display: grid; gap: 0.75rem;">
+        @for (order of openOrders(); track order.id) {
+          <div style="border-top: 1px dashed #e2e8f0; padding-top: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>Order {{ order.id.slice(0, 8) }}</strong>
+              <app-order-status-badge [status]="order.status"></app-order-status-badge>
+            </div>
+            <div style="margin-top: 0.35rem;">
+              @for (item of order.order_items ?? []; track item.id) {
+                <div style="display: flex; justify-content: space-between;">
+                  <span>{{ item.menu_item?.name ?? 'Item' }} x{{ item.qty }}</span>
+                  <span>{{ ((item.menu_item?.price ?? 0) * item.qty) | currency: 'INR' }}</span>
+                </div>
+              }
+            </div>
           </div>
         }
       </div>
-    }
-  </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-weight: 600;">
+        <div style="display: flex; gap: 1.5rem;">
+          <span>Subtotal: {{ openOrderSubtotal() | currency: 'INR' }}</span>
+          <span>Tax: {{ openOrderTax() | currency: 'INR' }}</span>
+          <span>Total: {{ openOrderTotal() | currency: 'INR' }}</span>
+        </div>
+        <button class="secondary" (click)="downloadBill()">Download Bill</button>
+      </div>
+    </div>
+  }
 
-  <div class="card" style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center;">
-    <button class="primary" [disabled]="placingOrder()" (click)="placeOrder()">{{ placingOrder() ? 'Placing...' : 'Place Order' }}</button>
-    <span>{{ orderMessage() }}</span>
+  <div class="menu-layout">
+    <div class="menu-categories">
+      @for (category of categories(); track category.id) {
+        <section class="card menu-category">
+          <div class="menu-category-header">
+            <h3>{{ category.name }}</h3>
+          </div>
+          @for (item of groupedItems().get(category.id) ?? []; track item.id) {
+            <div class="menu-item-row">
+              <div>
+                <p class="menu-item-name">{{ item.name }}</p>
+                <p class="menu-item-price">{{ item.price | currency: 'INR' }}</p>
+              </div>
+              <div class="menu-item-actions">
+                <button class="qty-btn" (click)="decrement(item.id)">-</button>
+                <span class="qty-value">{{ quantityMap()[item.id] || 0 }}</span>
+                <button class="qty-btn" (click)="increment(item.id)">+</button>
+              </div>
+            </div>
+          }
+        </section>
+      }
+    </div>
+
+    <aside class="cart-panel">
+      <div class="card">
+        <div class="cart-header">
+          <h3>Your Cart</h3>
+          <span class="cart-count">{{ cartTotalQty() }} items</span>
+        </div>
+
+        <div class="cart-items">
+          @for (entry of cartItems(); track entry.item.id) {
+            <div class="cart-item-row">
+              <div>
+                <p class="cart-item-name">{{ entry.item.name }}</p>
+                <p class="cart-item-price">
+                  {{ entry.item.price | currency: 'INR' }} · x{{ entry.qty }} ·
+                  {{ (entry.item.price * entry.qty) | currency: 'INR' }}
+                </p>
+              </div>
+              <div class="cart-item-actions">
+                <button class="qty-btn" (click)="decrement(entry.item.id)">-</button>
+                <span class="qty-value">{{ entry.qty }}</span>
+                <button class="qty-btn" (click)="increment(entry.item.id)">+</button>
+              </div>
+            </div>
+          }
+          @if (!cartItems().length) {
+            <p class="cart-empty">No items yet. Tap + to add your favorites.</p>
+          }
+        </div>
+
+        <div class="cart-summary">
+          <div class="cart-summary-row">
+            <span>Subtotal</span>
+            <strong>{{ cartSubtotal() | currency: 'INR' }}</strong>
+          </div>
+          <div class="cart-summary-row">
+            <span>Tax ({{ settingsService.taxPercent() }}%)</span>
+            <strong>{{ cartTaxAmount() | currency: 'INR' }}</strong>
+          </div>
+          <div class="cart-summary-row">
+            <span>Total</span>
+            <strong>{{ cartTotalAmount() | currency: 'INR' }}</strong>
+          </div>
+          <button class="primary" [disabled]="placingOrder() || !cartItems().length || selectingTable()" (click)="placeOrder()">
+            {{ placingOrder() ? 'Placing...' : 'Place Order' }}
+          </button>
+          <p class="cart-message">{{ orderMessage() }}</p>
+        </div>
+      </div>
+    </aside>
   </div>
 </section>

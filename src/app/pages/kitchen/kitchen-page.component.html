@@ -1,23 +1,174 @@
 <section class="page">
   <h2>Kitchen Live Orders</h2>
 
-  <div class="grid">
-    @for (order of orders(); track order.id) {
-      <article class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3>Order {{ order.id.slice(0, 8) }}</h3>
-            <small>{{ order.created_at | date: 'short' }}</small>
+  <div class="kitchen-section">
+    <div class="kitchen-section-header">
+      <h3>Pending</h3>
+      <span>{{ pendingOrders().length }}</span>
+    </div>
+    <div class="grid grid-2">
+      @for (order of pendingOrders(); track order.id) {
+        <article class="card">
+          <div class="order-header">
+            <div>
+              <h3>Table #{{ order.table?.table_no ?? 'N/A' }}</h3>
+              <small>Order {{ order.id.slice(0, 8) }} · {{ order.created_at | date: 'short' }}</small>
+            </div>
+            <app-order-status-badge [status]="order.status"></app-order-status-badge>
           </div>
-          <app-order-status-badge [status]="order.status"></app-order-status-badge>
-        </div>
 
-        <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
-          <button class="secondary" (click)="setStatus(order.id, 'preparing')">Preparing</button>
-          <button class="primary" (click)="setStatus(order.id, 'served')">Served</button>
-          <button class="danger" (click)="setStatus(order.id, 'paid')">Paid</button>
+          <details class="order-details" open>
+            <summary>Expanded View</summary>
+            <div class="order-items">
+              @for (item of order.order_items ?? []; track item.id) {
+                <div class="order-item-row">
+                  <span class="order-item-name">{{ item.menu_item?.name ?? 'Item' }}</span>
+                  <span class="order-item-qty">x{{ item.qty }}</span>
+                </div>
+              }
+              @if (!(order.order_items?.length)) {
+                <p class="order-empty">No items attached to this order.</p>
+              }
+            </div>
+          </details>
+
+          <div class="order-actions">
+            <button class="primary" (click)="setStatus(order.id, 'served')">Served</button>
+            <button class="danger" (click)="setStatus(order.id, 'paid')">Paid</button>
+            <button class="danger" (click)="setStatus(order.id, 'canceled')">Cancel</button>
+          </div>
+        </article>
+      }
+      @if (!pendingOrders().length) {
+        <div class="card">
+          <p>No pending orders.</p>
         </div>
-      </article>
-    }
+      }
+    </div>
+  </div>
+
+  <div class="kitchen-section">
+    <div class="kitchen-section-header">
+      <h3>Served</h3>
+      <span>{{ servedOrders().length }}</span>
+    </div>
+    <div class="grid grid-2">
+      @for (order of servedOrders(); track order.id) {
+        <article class="card">
+          <div class="order-header">
+            <div>
+              <h3>Table #{{ order.table?.table_no ?? 'N/A' }}</h3>
+              <small>Order {{ order.id.slice(0, 8) }} · {{ order.created_at | date: 'short' }}</small>
+            </div>
+            <app-order-status-badge [status]="order.status"></app-order-status-badge>
+          </div>
+
+          <details class="order-details">
+            <summary>Expanded View</summary>
+            <div class="order-items">
+              @for (item of order.order_items ?? []; track item.id) {
+                <div class="order-item-row">
+                  <span class="order-item-name">{{ item.menu_item?.name ?? 'Item' }}</span>
+                  <span class="order-item-qty">x{{ item.qty }}</span>
+                </div>
+              }
+              @if (!(order.order_items?.length)) {
+                <p class="order-empty">No items attached to this order.</p>
+              }
+            </div>
+          </details>
+
+          <div class="order-actions">
+            <button class="danger" (click)="setStatus(order.id, 'paid')">Paid</button>
+            <button class="danger" (click)="setStatus(order.id, 'canceled')">Cancel</button>
+          </div>
+        </article>
+      }
+      @if (!servedOrders().length) {
+        <div class="card">
+          <p>No served orders.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="kitchen-section">
+    <div class="kitchen-section-header">
+      <h3>Paid</h3>
+      <span>{{ paidOrders().length }}</span>
+    </div>
+    <div class="grid grid-2">
+      @for (order of paidOrders(); track order.id) {
+        <article class="card">
+          <div class="order-header">
+            <div>
+              <h3>Table #{{ order.table?.table_no ?? 'N/A' }}</h3>
+              <small>Order {{ order.id.slice(0, 8) }} · {{ order.created_at | date: 'short' }}</small>
+            </div>
+            <app-order-status-badge [status]="order.status"></app-order-status-badge>
+          </div>
+
+          <details class="order-details">
+            <summary>Expanded View</summary>
+            <div class="order-items">
+              @for (item of order.order_items ?? []; track item.id) {
+                <div class="order-item-row">
+                  <span class="order-item-name">{{ item.menu_item?.name ?? 'Item' }}</span>
+                  <span class="order-item-qty">x{{ item.qty }}</span>
+                </div>
+              }
+              @if (!(order.order_items?.length)) {
+                <p class="order-empty">No items attached to this order.</p>
+              }
+            </div>
+          </details>
+        </article>
+      }
+      @if (!paidOrders().length) {
+        <div class="card">
+          <p>No paid orders.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="kitchen-section">
+    <div class="kitchen-section-header">
+      <h3>Canceled</h3>
+      <span>{{ canceledOrders().length }}</span>
+    </div>
+    <div class="grid grid-2">
+      @for (order of canceledOrders(); track order.id) {
+        <article class="card">
+          <div class="order-header">
+            <div>
+              <h3>Table #{{ order.table?.table_no ?? 'N/A' }}</h3>
+              <small>Order {{ order.id.slice(0, 8) }} · {{ order.created_at | date: 'short' }}</small>
+            </div>
+            <app-order-status-badge [status]="order.status"></app-order-status-badge>
+          </div>
+
+          <details class="order-details">
+            <summary>Expanded View</summary>
+            <div class="order-items">
+              @for (item of order.order_items ?? []; track item.id) {
+                <div class="order-item-row">
+                  <span class="order-item-name">{{ item.menu_item?.name ?? 'Item' }}</span>
+                  <span class="order-item-qty">x{{ item.qty }}</span>
+                </div>
+              }
+              @if (!(order.order_items?.length)) {
+                <p class="order-empty">No items attached to this order.</p>
+              }
+            </div>
+          </details>
+        </article>
+      }
+      @if (!canceledOrders().length) {
+        <div class="card">
+          <p>No canceled orders.</p>
+        </div>
+      }
+    </div>
   </div>
 </section>

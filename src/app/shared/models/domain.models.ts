@@ -1,4 +1,4 @@
-export type OrderStatus = 'pending' | 'preparing' | 'served' | 'paid';
+export type OrderStatus = 'pending' | 'served' | 'paid' | 'canceled';
 
 export interface DiningTable {
   id: string;
@@ -33,4 +33,13 @@ export interface OrderItem {
   menu_item_id: string;
   qty: number;
   note?: string;
+}
+
+export interface OrderItemDetail extends OrderItem {
+  menu_item?: MenuItem;
+}
+
+export interface OrderWithDetails extends Order {
+  table?: DiningTable;
+  order_items?: OrderItemDetail[];
 }

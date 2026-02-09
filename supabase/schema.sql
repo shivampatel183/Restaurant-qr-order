@@ -23,7 +23,7 @@ create table if not exists menu_items (
 create table if not exists orders (
   id uuid primary key default uuid_generate_v4(),
   table_id uuid not null references tables(id),
-  status text not null check (status in ('pending', 'preparing', 'served', 'paid')),
+  status text not null check (status in ('pending', 'served', 'paid', 'canceled')),
   created_at timestamptz not null default now()
 );
 
@@ -35,11 +35,22 @@ create table if not exists order_items (
   note text
 );
 
+create table if not exists app_settings (
+  id int primary key default 1,
+  tax_percent numeric(5,2) not null default 0,
+  updated_at timestamptz not null default now()
+);
+
+insert into app_settings (id, tax_percent)
+values (1, 5)
+on conflict (id) do nothing;
+
 alter table tables enable row level security;
 alter table menu_categories enable row level security;
 alter table menu_items enable row level security;
 alter table orders enable row level security;
 alter table order_items enable row level security;
+alter table app_settings enable row level security;
 
 create policy "Public menu category access"
 on menu_categories for select
@@ -85,6 +96,16 @@ with check (true);
 
 create policy "Admin full access order items"
 on order_items for all
+to authenticated
+using (true)
+with check (true);
+
+create policy "Public settings read"
+on app_settings for select
+using (true);
+
+create policy "Admin settings update"
+on app_settings for update
 to authenticated
 using (true)
 with check (true);

@@ -1,8 +1,8 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 
 import { OrderService } from '../../core/services/order.service';
-import { Order, OrderStatus } from '../../shared/models/domain.models';
+import { OrderStatus, OrderWithDetails } from '../../shared/models/domain.models';
 import { OrderStatusBadgeComponent } from '../../shared/components/order-status-badge.component';
 
 @Component({
@@ -12,16 +12,19 @@ import { OrderStatusBadgeComponent } from '../../shared/components/order-status-
   templateUrl: './kitchen-page.component.html'
 })
 export class KitchenPageComponent implements OnInit, OnDestroy {
-  orders = signal<Order[]>([]);
+  orders = signal<OrderWithDetails[]>([]);
+  pendingOrders = computed(() => this.orders().filter((order) => order.status === 'pending'));
+  servedOrders = computed(() => this.orders().filter((order) => order.status === 'served'));
+  paidOrders = computed(() => this.orders().filter((order) => order.status === 'paid'));
+  canceledOrders = computed(() => this.orders().filter((order) => order.status === 'canceled'));
 
   constructor(private readonly orderService: OrderService) {}
 
   async ngOnInit(): Promise<void> {
-    const current = await this.orderService.getOrders();
-    this.orders.set(current);
+    await this.refresh();
 
     this.orderService.subscribeToOrderInserts((newOrder) => {
-      this.orders.update((existing) => [newOrder, ...existing]);
+      void this.refresh();
     });
   }
 
@@ -32,5 +35,10 @@ export class KitchenPageComponent implements OnInit, OnDestroy {
   async setStatus(orderId: string, status: OrderStatus): Promise<void> {
     await this.orderService.updateStatus(orderId, status);
     this.orders.update((current) => current.map((order) => (order.id === orderId ? { ...order, status } : order)));
+  }
+
+  private async refresh(): Promise<void> {
+    const current = await this.orderService.getOrders();
+    this.orders.set(current);
   }
 }

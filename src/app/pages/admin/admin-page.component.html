@@ -1,45 +1,161 @@
 <section class="page">
   <h2>Admin Panel</h2>
+  <div class="grid grid-2" style="margin: 1rem;">
+    <div class="card">
+      <h3>Monthly Analytics ({{ currentYear }})</h3>
+      <div class="chart">
+        @for (value of monthlyRevenue(); track $index) {
+        <div class="chart-bar" [style.height.%]="(value / maxMonthlyRevenue()) * 100">
+          <span>{{ value | currency: 'INR' }}</span>
+        </div>
+        }
+      </div>
+      <div class="chart-labels">
+        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+        <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+      </div>
 
+      <div class="grid grid-2" style="margin-top: 1rem;">
+        <div>
+          <h4>Monthly Orders</h4>
+          <div class="chart chart-small">
+            @for (value of monthlyOrderCounts(); track $index) {
+            <div class="chart-bar" [style.height.%]="(value / maxMonthlyOrders()) * 100">
+              <span>{{ value }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        <div>
+          <h4>Top Items</h4>
+          @for (item of topItems(); track item.name) {
+          <div style="display: flex; justify-content: space-between;">
+            <span>{{ item.name }}</span>
+            <span>{{ item.qty }}</span>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="grid grid-2">
     <div class="card">
       <h3>Create / Update Menu Item</h3>
       <label>Name</label>
       <input [ngModel]="draft().name" (ngModelChange)="updateDraftName($event)" />
-      <label>Category ID</label>
-      <input [ngModel]="draft().category_id" (ngModelChange)="updateDraftCategoryId($event)" />
+      <label>Category</label>
+      <select [ngModel]="draft().category_id" (ngModelChange)="updateDraftCategoryId($event)">
+        <option value="">Select category</option>
+        @for (category of categories(); track category.id) {
+        <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select>
       <label>Price</label>
       <input type="number" [ngModel]="draft().price" (ngModelChange)="updateDraftPrice($event)" />
-      <button class="primary" style="margin-top: 0.75rem" [disabled]="saving()" (click)="saveMenuItem()">{{ saving() ? 'Saving...' : 'Save Item' }}</button>
+      <button class="primary" style="margin-top: 0.75rem" [disabled]="saving()" (click)="saveMenuItem()">{{ saving() ?
+        'Saving...' : 'Save Item' }}</button>
     </div>
 
+    <div class="card">
+      <h3>Create Category</h3>
+      <label>Name</label>
+      <input [ngModel]="categoryDraft().name" (ngModelChange)="updateCategoryName($event)" />
+      <label>Sort Order</label>
+      <input type="number" [ngModel]="categoryDraft().sort_order" (ngModelChange)="updateCategorySortOrder($event)" />
+      <button class="secondary" style="margin-top: 0.75rem" (click)="saveCategory()">Save Category</button>
+    </div>
+  </div>
+
+  <div class="grid grid-2" style="margin-top: 1rem;">
     <div class="card">
       <h3>Daily Summary</h3>
       <p>Total orders: {{ orders().length }}</p>
       <p>Paid orders: {{ paidCount }}</p>
-      <button class="secondary" (click)="refresh()">Refresh</button>
+      <label>Tax % (applies to all bills)</label>
+      <input type="number" [ngModel]="taxDraft()" (ngModelChange)="updateTaxDraft($event)" />
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+        <button class="primary" (click)="saveTaxPercent()">Save Tax</button>
+        <button class="secondary" (click)="refresh()">Refresh</button>
+        <a routerLink="/admin/order" class="secondary-link">Create Order</a>
+      </div>
+      <p style="margin-top: 0.5rem; color: #64748b;">Current tax: {{ settingsService.taxPercent() }}%</p>
     </div>
+
+    <div class="card">
+      <h3>Tables & QR</h3>
+      <label>Number of Tables</label>
+      <input type="number" [ngModel]="tableCountDraft()" (ngModelChange)="updateTableCount($event)" />
+      <button class="secondary" style="margin-top: 0.75rem" (click)="saveTableCount()">Save Table Count</button>
+
+      <div style="margin-top: 0.75rem;">
+        @for (table of tables(); track table.id) {
+        @if (table.is_active) {
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #e2e8f0; padding: 0.5rem 0;">
+          <span>Table #{{ table.table_no }}</span>
+          <button class="secondary" (click)="downloadQr(table.table_no)">
+            {{ qrLoading()[table.table_no] ? 'Generating...' : 'Download QR' }}
+          </button>
+        </div>
+        }
+        }
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="card" style="margin-top: 1rem;">
+    <h3>Categories</h3>
+    @for (category of categories(); track category.id) {
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+      <span>{{ category.name }}</span>
+      <button class="danger" (click)="deleteCategory(category.id)">Delete</button>
+    </div>
+    }
   </div>
 
   <div class="card" style="margin-top: 1rem;">
     <h3>Menu Items</h3>
     @for (item of menuItems(); track item.id) {
-      <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
-        <span>{{ item.name }} ({{ item.price }})</span>
+    <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+      <span>{{ item.name }} ({{ item.price }})</span>
+      <div style="display: flex; gap: 0.5rem;">
         <button class="secondary" (click)="toggleAvailability(item)">
           {{ item.is_available ? 'Disable' : 'Enable' }}
         </button>
+        <button class="danger" (click)="deleteMenuItem(item.id)">Delete</button>
       </div>
+    </div>
     }
   </div>
 
   <div class="card" style="margin-top: 1rem;">
     <h3>Recent Orders</h3>
     @for (order of orders().slice(0, 20); track order.id) {
-      <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
-        <span>{{ order.id.slice(0, 8) }} · Table {{ order.table_id.slice(0, 6) }}</span>
+    <div style="border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>{{ order.id.slice(0, 8) }} � Table #{{ order.table?.table_no ?? 'N/A' }}</span>
         <app-order-status-badge [status]="order.status"></app-order-status-badge>
       </div>
+      <div style="margin-top: 0.5rem;">
+        @for (item of order.order_items ?? []; track item.id) {
+        <div style="display: flex; justify-content: space-between;">
+          <span>{{ item.menu_item?.name ?? 'Item' }} x{{ item.qty }}</span>
+          <span>{{ ((item.menu_item?.price ?? 0) * item.qty) | currency: 'INR' }}</span>
+        </div>
+        }
+        @if (!(order.order_items?.length)) {
+        <p style="color: #64748b;">No items.</p>
+        }
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 1.5rem; margin-top: 0.5rem; font-weight: 600;">
+        <span>Subtotal: {{ getOrderSubtotal(order) | currency: 'INR' }}</span>
+        <span>Tax: {{ getOrderTax(order) | currency: 'INR' }}</span>
+        <span>Total: {{ getOrderTotal(order) | currency: 'INR' }}</span>
+      </div>
+    </div>
     }
   </div>
 </section>
