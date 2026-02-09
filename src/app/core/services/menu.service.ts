@@ -69,14 +69,20 @@ export class MenuService {
     }
 
     if (toActivate.length) {
-      const { error } = await client.from('tables').update({ is_active: true }).in('table_no', toActivate);
+      const { error } = await client
+        .from('tables')
+        .update({ is_active: true })
+        .in('table_no', toActivate);
       if (error) {
         throw error;
       }
     }
 
     if (toDeactivate.length) {
-      const { error } = await client.from('tables').update({ is_active: false }).in('table_no', toDeactivate);
+      const { error } = await client
+        .from('tables')
+        .update({ is_active: false })
+        .in('table_no', toDeactivate);
       if (error) {
         throw error;
       }
@@ -139,7 +145,12 @@ export class MenuService {
   }
 
   async deleteCategory(categoryId: string): Promise<void> {
-    const { error } = await this.supabaseService.getClient().from('menu_categories').delete().eq('id', categoryId);
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('menu_categories')
+      .delete()
+      .eq('id', categoryId)
+      ;
 
     if (error) {
       throw error;
@@ -147,7 +158,12 @@ export class MenuService {
   }
 
   async deleteMenuItem(itemId: string): Promise<void> {
-    const { error } = await this.supabaseService.getClient().from('menu_items').delete().eq('id', itemId);
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('menu_items')
+      .delete()
+      .eq('id', itemId)
+      ;
 
     if (error) {
       throw error;
@@ -184,7 +200,10 @@ export class MenuService {
   }
 
   async upsertMenuItem(item: Partial<MenuItem>): Promise<void> {
-    const { error } = await this.supabaseService.getClient().from('menu_items').upsert(item);
+    const { error } = await this.supabaseService
+      .getClient()
+      .from('menu_items')
+      .upsert(item);
 
     if (error) {
       throw error;
@@ -196,7 +215,8 @@ export class MenuService {
       .getClient()
       .from('menu_items')
       .update({ is_available: isAvailable })
-      .eq('id', itemId);
+      .eq('id', itemId)
+      ;
 
     if (error) {
       throw error;
