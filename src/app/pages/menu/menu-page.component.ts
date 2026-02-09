@@ -38,7 +38,7 @@ export class MenuPageComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.tableId.set(this.route.snapshot.queryParamMap.get('table') ?? 'unknown');
+    await this.resolveTableId();
     this.categories.set(await this.menuService.getCategories());
     this.items.set(await this.menuService.getAvailableMenuItems());
   }
@@ -69,5 +69,37 @@ export class MenuPageComponent implements OnInit {
     } finally {
       this.placingOrder.set(false);
     }
+  }
+
+  private async resolveTableId(): Promise<void> {
+    const tableParam = (this.route.snapshot.queryParamMap.get('table') ?? '').trim();
+    if (!tableParam) {
+      this.tableId.set('');
+      this.orderMessage.set('Missing table information. Please scan the QR code again.');
+      return;
+    }
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (uuidPattern.test(tableParam)) {
+      this.tableId.set(tableParam);
+      return;
+    }
+
+    const tableNo = Number(tableParam);
+    if (Number.isNaN(tableNo)) {
+      this.tableId.set('');
+      this.orderMessage.set('Invalid table information. Please scan the QR code again.');
+      return;
+    }
+
+    const table = await this.menuService.getTableByNumber(tableNo);
+    if (!table) {
+      this.tableId.set('');
+      this.orderMessage.set(`Table ${tableNo} not found. Please contact staff.`);
+      return;
+    }
+
+    this.tableId.set(table.id);
   }
 }

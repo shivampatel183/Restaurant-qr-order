@@ -49,6 +49,19 @@ export class AdminPageComponent implements OnInit {
     await this.refresh();
   }
 
+  updateDraftName(name: string): void {
+    this.draft.update((value) => ({ ...value, name }));
+  }
+
+  updateDraftCategoryId(categoryId: string): void {
+    this.draft.update((value) => ({ ...value, category_id: categoryId }));
+  }
+
+  updateDraftPrice(rawPrice: string | number): void {
+    const price = typeof rawPrice === 'number' ? rawPrice : Number(rawPrice);
+    this.draft.update((value) => ({ ...value, price }));
+  }
+
   get paidCount(): number {
     return this.orders().filter((order) => order.status === 'paid').length;
   }

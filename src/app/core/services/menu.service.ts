@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { DiningTable, MenuCategory, MenuItem } from '../../shared/models/domain.models';
 import { SupabaseService } from './supabase.service';
-import { MenuCategory, MenuItem } from '../../shared/models/domain.models';
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {
@@ -20,6 +19,21 @@ export class MenuService {
     }
 
     return data as DiningTable[];
+  }
+
+  async getTableByNumber(tableNo: number): Promise<DiningTable | null> {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('tables')
+      .select('*')
+      .eq('table_no', tableNo)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return (data as DiningTable) ?? null;
   }
 
   async getCategories(): Promise<MenuCategory[]> {

@@ -1,0 +1,25 @@
+<section class="page">
+  <div class="card" style="max-width: 420px; margin: 3rem auto;">
+    <h2>Staff Login</h2>
+    <p style="margin-top: 0.25rem; color: #64748b;">Sign in to access kitchen and admin tools.</p>
+
+    <label>Email</label>
+    <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+
+    <label style="margin-top: 0.75rem;">Password</label>
+    <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" />
+
+    @if (error()) {
+      <p style="color: #dc2626; margin-top: 0.75rem;">{{ error() }}</p>
+    }
+
+    <button
+      class="primary"
+      style="margin-top: 1rem; width: 100%;"
+      [disabled]="loading()"
+      (click)="login()"
+    >
+      {{ loading() ? 'Signing in...' : 'Sign In' }}
+    </button>
+  </div>
+</section>

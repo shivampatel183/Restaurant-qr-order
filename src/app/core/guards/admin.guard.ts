@@ -12,6 +12,7 @@ export const adminGuard: CanActivateFn = async () => {
     return true;
   }
 
-  void router.navigate(['/menu']);
+  const redirect = router.url || '/admin';
+  void router.navigate(['/login'], { queryParams: { redirect } });
   return false;
 };
