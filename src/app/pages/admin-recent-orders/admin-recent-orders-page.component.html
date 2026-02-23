@@ -1,0 +1,42 @@
+<section class="page">
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>Recent Orders</h2>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="secondary" (click)="refresh()">Refresh</button>
+        <a routerLink="/admin" class="secondary-link">Back to Admin</a>
+      </div>
+    </div>
+    <p style="color: #64748b;">Latest 30 orders across all tables.</p>
+  </div>
+
+  <div class="card" style="margin-top: 1rem;">
+    @for (order of recentOrders(); track order.id) {
+      <div style="border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span>{{ order.id.slice(0, 8) }} · Table #{{ order.table?.table_no ?? 'N/A' }} · {{ order.created_at | date: 'short' }}</span>
+          <app-order-status-badge [status]="order.status"></app-order-status-badge>
+        </div>
+        <div style="margin-top: 0.5rem;">
+          @for (item of order.order_items ?? []; track item.id) {
+            <div style="display: flex; justify-content: space-between;">
+              <span>{{ item.menu_item?.name ?? 'Item' }} x{{ item.qty }}</span>
+              <span>{{ ((item.menu_item?.price ?? 0) * item.qty) | currency: 'INR' }}</span>
+            </div>
+          }
+          @if (!(order.order_items?.length)) {
+            <p style="color: #64748b;">No items.</p>
+          }
+        </div>
+        <div class="admin-order-totals">
+          <span>Subtotal: {{ getOrderSubtotal(order) | currency: 'INR' }}</span>
+          <span>Tax: {{ getOrderTax(order) | currency: 'INR' }}</span>
+          <span>Total: {{ getOrderTotal(order) | currency: 'INR' }}</span>
+        </div>
+      </div>
+    }
+    @if (!recentOrders().length) {
+      <p style="color: #64748b;">No recent orders.</p>
+    }
+  </div>
+</section>

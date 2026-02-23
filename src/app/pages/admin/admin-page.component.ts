@@ -7,12 +7,11 @@ import { OrderService } from '../../core/services/order.service';
 import { DiningTable, MenuCategory, MenuItem, OrderWithDetails } from '../../shared/models/domain.models';
 import QRCode from 'qrcode';
 import { SettingsService } from '../../core/services/settings.service';
-import { OrderStatusBadgeComponent } from '../../shared/components/order-status-badge.component';
 
 @Component({
   selector: 'app-admin-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, OrderStatusBadgeComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-page.component.html'
 })
 export class AdminPageComponent implements OnInit {
