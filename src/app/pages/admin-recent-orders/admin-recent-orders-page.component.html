@@ -11,10 +11,47 @@
   </div>
 
   <div class="card" style="margin-top: 1rem;">
+    <h3>Monthly Analytics ({{ currentYear }})</h3>
+    <div class="chart">
+      @for (value of monthlyRevenue(); track $index) {
+        <div class="chart-bar" [style.height.%]="(value / maxMonthlyRevenue()) * 100">
+          <span>{{ value | currency: 'INR' }}</span>
+        </div>
+      }
+    </div>
+    <div class="chart-labels">
+      <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+      <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+    </div>
+
+    <div class="admin-analytics-grid" style="margin-top: 1rem;">
+      <div>
+        <h4>Monthly Orders</h4>
+        <div class="chart chart-small">
+          @for (value of monthlyOrderCounts(); track $index) {
+            <div class="chart-bar" [style.height.%]="(value / maxMonthlyOrders()) * 100">
+              <span>{{ value }}</span>
+            </div>
+          }
+        </div>
+      </div>
+      <div>
+        <h4>Top Items</h4>
+        @for (item of topItems(); track item.name) {
+          <div class="admin-top-item-row">
+            <span>{{ item.name }}</span>
+            <span>{{ item.qty }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1rem;">
     @for (order of recentOrders(); track order.id) {
       <div style="border-top: 1px solid #e2e8f0; padding: 0.65rem 0;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span>{{ order.id.slice(0, 8) }} · Table #{{ order.table?.table_no ?? 'N/A' }} · {{ order.created_at | date: 'short' }}</span>
+          <span>{{ order.id.slice(0, 8) }} - Table #{{ order.table?.table_no ?? 'N/A' }} - {{ order.created_at | date: 'short' }}</span>
           <app-order-status-badge [status]="order.status"></app-order-status-badge>
         </div>
         <div style="margin-top: 0.5rem;">
@@ -40,3 +77,4 @@
     }
   </div>
 </section>
+

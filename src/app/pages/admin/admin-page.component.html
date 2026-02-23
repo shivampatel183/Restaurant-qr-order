@@ -68,45 +68,6 @@
     </div>
   </div>
 
-  <div class="grid grid-2" style="margin-top: 1rem;">
-    <div class="card">
-      <h3>Monthly Analytics ({{ currentYear }})</h3>
-      <div class="chart">
-        @for (value of monthlyRevenue(); track $index) {
-          <div class="chart-bar" [style.height.%]="(value / maxMonthlyRevenue()) * 100">
-            <span>{{ value | currency: 'INR' }}</span>
-          </div>
-        }
-      </div>
-      <div class="chart-labels">
-        <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-        <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
-      </div>
-
-      <div class="admin-analytics-grid" style="margin-top: 1rem;">
-        <div>
-          <h4>Monthly Orders</h4>
-          <div class="chart chart-small">
-            @for (value of monthlyOrderCounts(); track $index) {
-              <div class="chart-bar" [style.height.%]="(value / maxMonthlyOrders()) * 100">
-                <span>{{ value }}</span>
-              </div>
-            }
-          </div>
-        </div>
-        <div>
-          <h4>Top Items</h4>
-          @for (item of topItems(); track item.name) {
-            <div class="admin-top-item-row">
-              <span>{{ item.name }}</span>
-              <span>{{ item.qty }}</span>
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div class="card" style="margin-top: 1rem;">
     <h3>Categories</h3>
     @for (category of categories(); track category.id) {
