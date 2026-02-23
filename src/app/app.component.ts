@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthChangeEvent, Session, Subscription } from '@supabase/supabase-js';
+import { SettingsService } from './core/services/settings.service';
 import { SupabaseService } from './core/services/supabase.service';
 
 @Component({
@@ -10,7 +11,7 @@ import { SupabaseService } from './core/services/supabase.service';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <header class="shell-header">
-      <h1>Restaurant QR Order</h1>
+      <h1>{{ settingsService.restaurantName() }}</h1>
       @if (isLoggedIn()) {
         <nav>
           <a routerLink="/menu" routerLinkActive="active">Menu</a>
@@ -91,10 +92,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly supabaseService: SupabaseService,
+    public readonly settingsService: SettingsService,
     private readonly router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
+    await this.settingsService.loadTaxPercent();
     const auth = this.supabaseService.getClient().auth;
     const session = await auth.getSession();
     this.isLoggedIn.set(Boolean(session.data.session?.user));
