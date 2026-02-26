@@ -112,12 +112,22 @@ to authenticated
 using (restaurant_id::text = current_setting('request.header.x-restaurant-id', true))
 with check (restaurant_id::text = current_setting('request.header.x-restaurant-id', true));
 
+drop policy if exists "Public settings read" on app_settings;
+drop policy if exists "Admin settings update" on app_settings;
+drop policy if exists "Admin settings insert" on app_settings;
+
+-- Single-restaurant mode: allow reading settings publicly and updating/inserting via authenticated users.
 create policy "Public settings read"
 on app_settings for select
-using (restaurant_id::text = current_setting('request.header.x-restaurant-id', true));
+using (true);
 
 create policy "Admin settings update"
 on app_settings for update
 to authenticated
-using (restaurant_id::text = current_setting('request.header.x-restaurant-id', true))
-with check (restaurant_id::text = current_setting('request.header.x-restaurant-id', true));
+using (true)
+with check (true);
+
+create policy "Admin settings insert"
+on app_settings for insert
+to authenticated
+with check (true);
